@@ -1,53 +1,67 @@
-import java.util.List;
-import java.util.Map;
-
 public class Service {
-    User user;
-    Service(User user){
+    private User user;
+
+    Service(User user) {
         this.user = user;
     }
 
-    public void deposit(long amount){
-        user.balance += amount;
-        user.transactions.add("Deposit: " + amount);
-        User.balances.put(user, user.getBalance());
-        System.out.println("Deposit successful, your new balance is: " + user.getBalance());
+    public void deposit(long amount) {
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
+        user.setBalance(user.getBalance() + amount);
+        user.addTransaction("Deposit: " + amount);
+        System.out.println("Deposit successful. New balance: " + user.getBalance());
     }
 
-    public void withdraw(long amount){
+
+    public void withdraw(long amount) {
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
         if (user.getBalance() < amount) {
-            System.out.println("Insufficient balance, your current balance is: " + user.getBalance());
-        } else {
-            user.balance -= amount;
-            user.transactions.add("Withdraw: " + amount);
-            User.balances.put(user, user.getBalance());
-            System.out.println("Withdraw successful, your new balance is: " + user.getBalance());
+            System.out.println("Insufficient balance. Current balance: " + user.getBalance());
+            return;
         }
+        user.setBalance(user.getBalance() - amount);
+        user.addTransaction("Withdraw: " + amount);
+        System.out.println("Withdrawal successful. New balance: " + user.getBalance());
     }
 
-    public void checkbalance(){
-        System.out.println("Your current balance is: " + user.getBalance());
+
+    public void checkBalance() {
+        System.out.println("Current balance: " + user.getBalance());
     }
 
-    public void transfer(User user1, long amount){
+    public void transfer(String recipientEmail, long amount) {
+        if (amount <= 0) {
+            System.out.println("Amount must be positive.");
+            return;
+        }
+        if (user.getEmail().equals(recipientEmail)) {
+            System.out.println("You cannot transfer to yourself.");
+            return;
+        }
+        User recipient = User.findByEmail(recipientEmail);
+        if (recipient == null) {
+            System.out.println("User not found.");
+            return;
+        }
         if (user.getBalance() < amount) {
-            System.out.println("Insufficient balance, your current balance is: " + user.getBalance());
+            System.out.println("Insufficient balance. Current balance: " + user.getBalance());
+            return;
         }
-        else if(user == user1){
-            System.out.println("you can not transer to your self");
-        }
-        else {
-            user.balance -= amount;
-            user1.balance += amount;
-            user.transactions.add("Transfer to " + user1.email + ": " + amount);
-            user1.transactions.add("Transfer from " + user.email + ": " + amount);
-            User.balances.put(user, user.getBalance());
-            User.balances.put(user1, user1.getBalance());
-            System.out.println("Transfer successful, your new balance is: " + user.getBalance());
-        }
+        user.setBalance(user.getBalance() - amount);
+        recipient.setBalance(recipient.getBalance() + amount);
+        user.addTransaction("Transfer to " + recipient.getEmail() + ": " + amount);
+        recipient.addTransaction("Transfer from " + user.getEmail() + ": " + amount);
+        System.out.println("Transfer successful. New balance: " + user.getBalance());
     }
 
-    public void histroy(){
-        System.out.println("Your transactions history: " + user.transactions.toString());
+
+    public void history() {
+        System.out.println("Transaction history: " + user.getTransactions());
     }
 }
